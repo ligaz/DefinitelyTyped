@@ -5,115 +5,208 @@
 
 
 
-declare class Nightmare {
-    constructor(options?: Nightmare.IConstructorOptions);
+/// <reference types="node" />
 
-    // Interact
-    goto(url: string): Nightmare;
+declare class Nightmare {
+    constructor(options?: Nightmare.NightmareOptions);
+    engineVersions(): Nightmare;
+    authentication(user: string, password: string): Nightmare;
+    useragent(useragent: string): Nightmare;
+    end(): Nightmare;
+    goto(url: string, headers?: Object): Nightmare;
     back(): Nightmare;
     forward(): Nightmare;
     refresh(): Nightmare;
     click(selector: string): Nightmare;
+    mousedown(selector: string): Nightmare;
     type(selector: string, text: string): Nightmare;
-    upload(selector: string, path: string): Nightmare;
+    insert(selector: string, text: string): Nightmare;
+    check(selector: string): Nightmare;
+    uncheck(selector: string): Nightmare;
+    select(selector: string, option: string): Nightmare;
     scrollTo(top: number, left: number): Nightmare;
+    viewport(width: number, height: number): Nightmare;
     inject(type: string, file: string): Nightmare;
-    evaluate(fn: () => void): Nightmare;
-    evaluate<R>(fn: () => R, cb: (result: R) => void): Nightmare;
-    evaluate<T>(fn: (arg: T) => void, cb: () => void, arg: T): Nightmare;
-    evaluate<T, R>(fn: (arg: T) => R, cb: (result: R) => void, arg: T): Nightmare;
-    evaluate<T1, T2, R>(fn: (arg1: T1, arg2: T2) => R, cb: (result: R) => void, arg1: T1, arg2: T2): Nightmare;
-    evaluate<T1, T2, T3, R>(fn: (arg1: T1, arg2: T2, arg3: T3) => R, cb: (result: R) => void, arg1: T1, arg2: T2, arg3: T3): Nightmare;
-    wait(): Nightmare;
+    evaluate<T>(fn: (...values: T[]) => any, ...values: T[]): Nightmare;
     wait(ms: number): Nightmare;
     wait(selector: string): Nightmare;
-    wait(fn: () => any, value: any, delay?: number): Nightmare;
-    use(plugin: (nightmare: Nightmare) => void): Nightmare;
-    run(cb?: (err: any, nightmare: Nightmare) => void): Nightmare;
-
-    // Extract
-    exists(selector: string, cb: (result: boolean) => void): Nightmare;
-    visible(selector: string, cb: (result: boolean) => void): Nightmare;
-    on(event: string, cb: () => void): Nightmare;
-    on(event: 'initialized', cb: () => void): Nightmare;
-    on(event: 'loadStarted', cb: () => void): Nightmare;
-    on(event: 'loadFinished', cb: (status: string) => void): Nightmare;
-    on(event: 'urlChanged', cb: (targetUrl: string) => void): Nightmare;
-    on(event: 'navigationRequested', cb: (url: string, type: string, willNavigate: boolean, main: boolean) => void): Nightmare;
-    on(event: 'resourceRequested', cb: (requestData: Nightmare.IRequest, networkRequest: Nightmare.INetwordRequest) => void): Nightmare;
-    on(event: 'resourceReceived', cb: (response: Nightmare.IResponse) => void): Nightmare;
-    on(event: 'resourceError', cb: (resourceError: Nightmare.IResourceError) => void): Nightmare;
-    on(event: 'consoleMessage', cb: (msg: string, lineNumber: number, sourceId: number) => void): Nightmare;
-    on(event: 'alert', cb: (msg: string) => void): Nightmare;
-    on(event: 'confirm', cb: (msg: string) => void): Nightmare;
-    on(event: 'prompt', cb: (msg: string, defaultValue?: string) => void): Nightmare;
-    on(event: 'error', cb: (msg: string, trace?: Nightmare.IStackTrace[]) => void): Nightmare;
-    on(event: 'timeout', cb: (msg: string) => void): Nightmare;
+    wait<T>(fn: (...values: T[]) => boolean, ...values: T[]): Nightmare;
+    header(header: string, value: string): Nightmare;
+    exists(selector: string): Nightmare;
+    visible(selector: string): Nightmare;
     screenshot(path: string): Nightmare;
-    pdf(path: string): Nightmare;
-    title(cb: (title: string) => void): Nightmare;
-    url(cb: (url: string) => void): Nightmare;
-
-    // Settings
-    authentication(user: string, password: string): Nightmare;
-    useragent(useragent: string): Nightmare;
-    viewport(width: number, height: number): Nightmare;
-    zoom(zoomFactor: number): Nightmare;
-    headers(headers: Object): Nightmare;
+    html(path: string, saveType: 'HTMLOnly' | 'HTMLComplete' | 'MHTML'): Nightmare;
+    pdf(path: string, options?: Nightmare.PrintToPDFOptions): Nightmare;
+    title(): Nightmare;
+    url(): Nightmare;
+    use(plugin: (nightmare: Nightmare) => void): Nightmare;
+    then<T>(fulfill?: (value: any) => T, reject?: (value: any) => T): Promise<T>;
+    catch<T>(reject?: (error: any) => T): Promise<T>;
 }
 
 declare namespace Nightmare {
-    export interface IConstructorOptions {
-        timeout?: any;  // number | string;
-        interval?: any; // number | string;
-        port?: number;
-        weak?: boolean;
-        loadImages?: boolean;
-        ignoreSslErrors?: boolean;
-        sslProtocol?: string;
-        webSecurity?: boolean;
-        proxy?: string;
-        proxyType?: string;
-        proxyAuth?: string;
-        cookiesFile?: string;
-        phantomPath?: string;
+    interface NightmareOptions extends BrowserWindowOptions {
+        gotoTimeout?: number;
+        waitTimeout?: number;
+        paths?: Paths;
+        electronPath?: string;
+        switches?: Switches;
+        dock?: boolean;
+        openDevTools?: boolean;
     }
 
-    export interface IRequest {
-        id: number;
-        method: string;
-        url: string;
-        time: Date;
-        headers: Object;
+    // https://github.com/electron/electron/blob/master/docs/api/app.md#appgetpathname
+    interface Paths {
+        home?: string;
+        appData?: string;
+        userData?: string;
+        temp?: string;
+        exe?: string;
+        module?: string;
+        desktop?: string;
+        documents?: string;
+        downloads?: string;
+        music?: string;
+        pictures?: string;
+        videos?: string;
     }
-    export interface INetwordRequest {
-        abort(): void;
-        changeUrl(url: string): void;
-        setHeader(key: string, value: string): void;
+
+    // https://github.com/electron/electron/blob/master/docs/api/chrome-command-line-switches.md
+    interface Switches {
+        'ignore-connection-limit'?: string;
+        'disable-http-cache'?: boolean;
+        'disable-http2'?: boolean;
+        'remote-debugging-port'?: number;
+        'js-flags'?: string;
+        'proxy-server'?: string;
+        'proxy-bypass-list'?: string;
+        'proxy-pac-url'?: string;
+        'no-proxy-server'?: boolean;
+        'host-rules'?: string;
+        'host-resolve-rules'?: string;
+        'auth-server-whitelist'?: string;
+        'auth-negotiate-delegate-whitelist'?: string;
+        'ignore-certificate-errors'?: string;
+        'ppapi-flash-path'?: string;
+        'ppapi-flash-version'?: string;
+        'log-net-log'?: string;
+        'ssl-version-fallback-min'?: string;
+        'cipher-suite-blacklist'?: string;
+        'disable-renderer-backgrounding'?: string;
+        'enable-logging'?: boolean;
+        'v'?: string;
+        'vmodule'?: string;
     }
-    export interface IResponse {
-        id: number;
-        url: string;
-        time: Date;
-        headers: Object;
-        bodySize: number;
-        contentType: string;
-        redirectURL: string;
-        stage: string;
-        status: number;
-        statusText: string;
+
+    interface BrowserWindowOptions extends Rectangle {
+        width?: number;
+        height?: number;
+        x?: number;
+        y?: number;
+        useContentSize?: boolean;
+        center?: boolean;
+        minWidth?: number;
+        minHeight?: number;
+        maxWidth?: number;
+        maxHeight?: number;
+        resizable?: boolean;
+        movable?: boolean;
+        minimizable?: boolean;
+        maximizable?: boolean;
+        closable?: boolean;
+        alwaysOnTop?: boolean;
+        fullscreen?: boolean;
+        fullscreenable?: boolean;
+        skipTaskbar?: boolean;
+        kiosk?: boolean;
+        title?: string;
+        icon?: NativeImage | string;
+        show?: boolean;
+        frame?: boolean;
+        acceptFirstMouse?: boolean;
+        disableAutoHideCursor?: boolean;
+        autoHideMenuBar?: boolean;
+        enableLargerThanScreen?: boolean;
+        backgroundColor?: string;
+        hasShadow?: boolean;
+        darkTheme?: boolean;
+        transparent?: boolean;
+        type?: BrowserWindowType;
+        titleBarStyle?: 'default' | 'hidden' | 'hidden-inset';
+        webPreferences?: WebPreferences;
     }
-    export interface IResourceError {
-        id: number;
-        url: string;
-        errorCode: number;
-        errorString: string;
+
+    type BrowserWindowType = BrowserWindowTypeLinux | BrowserWindowTypeMac;
+    type BrowserWindowTypeLinux = 'desktop' | 'dock' | 'toolbar' | 'splash' | 'notification';
+    type BrowserWindowTypeMac = 'desktop' | 'textured';
+
+    interface Rectangle {
+        x?: number;
+        y?: number;
+        width?: number;
+        height?: number;
     }
-    export interface IStackTrace {
-        file: string;
-        line: number;
-        function?: string;
+
+    interface WebPreferences {
+        nodeIntegration?: boolean;
+        preload?: string;
+        session?: string;
+        partition?: string;
+        zoomFactor?: number;
+        javascript?: boolean;
+        webSecurity?: boolean;
+        allowDisplayingInsecureContent?: boolean;
+        allowRunningInsecureContent?: boolean;
+        images?: boolean;
+        textAreasAreResizable?: boolean;
+        webgl?: boolean;
+        webaudio?: boolean;
+        plugins?: boolean;
+        experimentalFeatures?: boolean;
+        experimentalCanvasFeatures?: boolean;
+        directWrite?: boolean;
+        blinkFeatures?: string;
+        defaultFontFamily?: {
+            standard?: string;
+            serif?: string;
+            sansSerif?: string;
+            monospace?: string;
+        };
+        defaultFontSize?: number;
+        defaultMonospaceFontSize?: number;
+        minimumFontSize?: number;
+        defaultEncoding?: string;
+        backgroundThrottling?: boolean;
+    }
+
+    class NativeImage {
+        static createEmpty(): NativeImage;
+        static createFromPath(path: string): NativeImage;
+        static createFromBuffer(buffer: Buffer, scaleFactor?: number): NativeImage;
+        static createFromDataURL(dataURL: string): NativeImage;
+        toPng(): Buffer;
+        toJpeg(quality: number): Buffer;
+        toDataURL(): string;
+        getNativeHandle(): Buffer;
+        isEmpty(): boolean;
+        getSize(): Dimension;
+        setTemplateImage(option: boolean): void;
+        isTemplateImage(): boolean;
+    }
+
+    interface Dimension {
+        width: number;
+        height: number;
+    }
+
+    interface PrintToPDFOptions {
+        marginsType?: number;
+        pageSize?: 'A3' | 'A4' | 'A5' | 'Legal' | 'Letter' | 'Tabloid';
+        printBackground?: boolean;
+        printSelectionOnly?: boolean;
+        landscape?: boolean;
     }
 }
 
 export = Nightmare;
+
